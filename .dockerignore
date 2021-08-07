@@ -1,0 +1,4 @@
+*.log
+*.dockerfile
+README.md
+play.js
