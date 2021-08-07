@@ -16,4 +16,6 @@ exports.db = {
   // DB configs
 };
 
+exports.memory = {};
+
 exports.errorCodePrefix = 'APP_';
