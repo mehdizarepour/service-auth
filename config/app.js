@@ -17,8 +17,6 @@ exports.jwt = {
   issuer: 'coocheh:auth',
   private: fs.readFileSync(env.APP_JWT_SECRET_PRIVATE || './runtime/private.key'),
   public: fs.readFileSync(env.APP_JWT_SECRET_PUBLIC || './runtime/public.crt')
-  // private: fs.readFileSync(env.APP_JWT_SECRET_PRIVATE) || './runtime/private.key',
-  // public: fs.readFileSync(env.APP_JWT_SECRET_PUBLIC) || './runtime/public.crt'
 };
 
 // environment
@@ -29,6 +27,10 @@ exports.db = {
   // DB configs
 };
 
-exports.memory = {};
+exports.memory = {
+  users: [],
+  tokens: [],
+  sms: []
+};
 
 exports.errorCodePrefix = 'APP_';

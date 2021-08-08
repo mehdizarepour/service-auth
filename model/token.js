@@ -54,5 +54,17 @@ exports.delete = key => {
  * @param {Array}  properties User properties
  * @returns {Object}
  */
-exports.getByKey = (key, properties) =>
-  pick(db[MODEL_NAME].find(i => i.key === key), properties);
+exports.getByKey = (key, properties) => {
+  const res = db[MODEL_NAME].find(i => i.key === key);
+
+  return res ? pick(res, properties) : null;
+};
+
+/**
+ * Check auth refresh token
+ * @param {String} userKey
+ * @param {String} authRefreshToken
+ * @returns {Promise<Boolean>}
+ */
+exports.checkAuthRefreshToken = async (userKey, authRefreshToken) =>
+  !!db[MODEL_NAME].find(i => i.userKey === userKey || i.authRefreshToken === authRefreshToken);

@@ -1,4 +1,4 @@
-const constantCase = require('constant-case');
+const { constantCase } = require('constant-case');
 const identity = require('lodash/identity');
 
 const error = require('~/lib/error');

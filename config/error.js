@@ -31,5 +31,13 @@ exports.auth = {
     {
       code: 'tokenHasBeenExpired'
     }
+  ],
+
+  invalidVerificationCode: [
+    401,
+    'token has been expired',
+    {
+      code: 'tokenHasBeenExpired'
+    }
   ]
 };

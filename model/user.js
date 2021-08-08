@@ -12,11 +12,12 @@ const MODEL_NAME = 'users';
  */
 exports.create = data => {
   const users = castArray(db[MODEL_NAME]);
+  const key = uniqueId();
 
-  users.push({ key: uniqueId(), ...data });
+  users.push({ key, ...data });
   db[MODEL_NAME] = users;
 
-  return data;
+  return { ...data, key };
 };
 
 /**
@@ -54,5 +55,20 @@ exports.delete = key => {
  * @param {Array}  properties User properties
  * @returns {Object}
  */
-exports.getByKey = (key, properties) =>
-  pick(db[MODEL_NAME].find(i => i.key === key), properties);
+exports.getByKey = (key, properties) => {
+  const res = db[MODEL_NAME].find(i => i.key === key);
+
+  return res ? pick(res, properties) : null;
+};
+
+/**
+ * Get user by phoneNumber
+ * @param {String} phoneNumber User phone number
+ * @param {Array} properties User properties
+ * @returns {Object}
+ */
+exports.getUserByPhoneNumber = (phoneNumber, properties) => {
+  const res = db[MODEL_NAME].find(i => i.phoneNumber === phoneNumber);
+
+  return res ? pick(res, properties) : null;
+};
