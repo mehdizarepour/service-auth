@@ -34,10 +34,28 @@ exports.auth = {
   ],
 
   invalidVerificationCode: [
-    401,
-    'token has been expired',
+    400,
+    'invalid verification code',
     {
-      code: 'tokenHasBeenExpired'
+      code: 'invalidVerificationCode'
+    }
+  ]
+};
+
+exports.user = {
+  userIsNotActive: [
+    422,
+    'user is not active',
+    {
+      code: 'userIsNotActive'
+    }
+  ],
+
+  registerNotComplete: [
+    422,
+    'register is not completed',
+    {
+      code: 'registerNotComplete'
     }
   ]
 };

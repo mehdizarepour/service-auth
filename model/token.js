@@ -67,4 +67,13 @@ exports.getByKey = (key, properties) => {
  * @returns {Promise<Boolean>}
  */
 exports.checkAuthRefreshToken = async (userKey, authRefreshToken) =>
-  !!db[MODEL_NAME].find(i => i.userKey === userKey || i.authRefreshToken === authRefreshToken);
+  !!db[MODEL_NAME].find(i => i.userKey === userKey && i.authRefreshToken === authRefreshToken);
+
+/**
+ * Check auth token
+ * @param {String} userKey
+ * @param {String} authJwtid
+ * @returns {Boolean}
+ */
+exports.checkAuthToken = async (userKey, authJwtid) =>
+  !!db[MODEL_NAME].find(i => i.userKey === userKey && i.authJwtid === authJwtid);
