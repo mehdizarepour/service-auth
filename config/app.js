@@ -30,7 +30,8 @@ exports.db = {
 exports.memory = {
   users: [],
   tokens: [],
-  sms: []
+  sms: [],
+  redis: []
 };
 
 exports.errorCodePrefix = 'APP_';

@@ -9,6 +9,14 @@ exports.app = {
 };
 
 exports.auth = {
+  invalidVerificationToken: [
+    422,
+    'invalid verification token',
+    {
+      code: 'invalidVerificationToken',
+    }
+  ],
+
   unauthorized: [
     401,
     'unauthorized',
