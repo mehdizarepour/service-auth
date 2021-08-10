@@ -1,7 +1,7 @@
-const { memory: { redis } } = require('~/config/app');
+const { memory: { redis }, jwt: jwtConfig } = require('~/config/app');
 const { user: userEnum } = require('~/config/enum');
 const { auth: authError } = require('~/config/error');
-const { randomNumber, uniqueId } = require('~/lib/crypto');
+const { randomNumber, uniqueId, jwt } = require('~/lib/crypto');
 const { httpInvariant } = require('~/lib/error');
 const Joi = require('~/lib/validate');
 const userModel = require('~/model/user');
@@ -119,6 +119,51 @@ module.exports = router => {
       refreshToken,
       jti
     });
+  });
+
+  const refreshTokenSchema = Joi.object().keys({
+    refreshToken: Joi.string().required().trim()
+  });
+
+  router.post('/auth/refresh-token', mw.auth(), async ctx => {
+    const { refreshToken: rt } = Joi.attempt(ctx.request.body, refreshTokenSchema);
+    const user = ctx.state.user;
+
+    // Decode token when user's token has been expired
+    const token = authService.parseAuthorizationHeader(ctx.get('authorization'));
+    const decodedToken = jwt.decode(token);
+
+    if (!user) {
+      // Check if token is valid or not
+      const isValid = await tokenModel.checkAuthToken(decodedToken.sub, decodedToken.jti);
+
+      httpInvariant(isValid, ...authError.unauthorized);
+
+      ctx.state.user = { key: decodedToken.sub };
+    }
+
+    // Parse refresh token
+    const refreshToken = rt.split(' ');
+
+    httpInvariant(
+      refreshToken.length === 2 &&
+      refreshToken[0] === 'Bearer' &&
+      refreshToken[1],
+      ...authError.invalidRefreshToken);
+
+    // Verify refresh token
+    const res = await jwt.verify(refreshToken[1], { maxAge: jwtConfig.refreshTokenMaxAge });
+
+    // Check if refresh token and token belongs to the same user
+    httpInvariant(res.sub === ctx.state.user.key, ...authError.invalidRefreshToken);
+
+    // Create new token
+    const { token: signedToken } = await authService.createToken(res.sub, {
+      authRefreshToken: res.rto,
+      jti: decodedToken.jti
+    });
+
+    ctx.bodyOk({ token: signedToken });
   });
 
   router.get('/auth/authorize', mw.auth(), async ctx => {
