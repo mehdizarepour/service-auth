@@ -2,7 +2,7 @@ const appConfig = require('~/config/app');
 const { auth: authError, user: userError } = require('~/config/error');
 const { user: userEnum } = require('~/config/enum');
 const { jwt } = require('~/lib/crypto');
-const { httpInvariant, HttpError, httpThrow } = require('~/lib/error');
+const { httpInvariant, HttpError } = require('~/lib/error');
 const authService = require('~/service/auth');
 const userModel = require('~/model/user');
 const tokenModel = require('~/model/token');
@@ -27,14 +27,10 @@ module.exports = () => async (ctx, next) => {
     ctx.state.user = { key: res.sub, status: user.status, jti: res.jti };
 
     httpInvariant(
-      user.status === userEnum.status.active ||
-      user.status === userEnum.status.preregister,
+      user.status === userEnum.status.active,
       ...userError.userIsNotActive
     );
 
-    if (user.status === userEnum.status.preregister && ctx._matchedRoute !== '/user/register') {
-      httpThrow(...userError.registerNotComplete);
-    }
   } catch (err) {
     if (
       err instanceof HttpError &&
