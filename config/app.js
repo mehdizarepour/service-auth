@@ -34,4 +34,4 @@ exports.memory = {
   redis: []
 };
 
-exports.errorCodePrefix = 'APP_';
+exports.errorCodePrefix = 'AUTH_';
