@@ -108,7 +108,7 @@ module.exports = router => {
 
     httpInvariant(isValid, ...authError.invalidVerificationToken);
 
-    const user = userModel.create({ phoneNumber, name });
+    const user = userModel.create({ phoneNumber, name, status: userEnum.status.active });
 
     // Create new token
     const { token, refreshToken, jwtid: jti } = await authService.createToken(user.key);
