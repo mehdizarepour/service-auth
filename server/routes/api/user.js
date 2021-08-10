@@ -20,7 +20,7 @@ module.exports = router => {
     phoneNumber: Joi.phoneNumber().mobile().required()
   });
 
-  router.post('/user/phone-number/verify', async ctx => {
+  router.post('/auth/phone-number/verify', async ctx => {
     const { phoneNumber } = Joi.attempt(ctx.request.body, verifyPhoneNumberSchema);
 
     smsService.sendVerificationCode(phoneNumber, randomNumber(4));
@@ -33,7 +33,7 @@ module.exports = router => {
     code: Joi.string().length(4).required()
   });
 
-  router.post('/user/phone-number/check', async ctx => {
+  router.post('/auth/phone-number/check', async ctx => {
     const { phoneNumber, code } = Joi.attempt(ctx.request.body, checkPhoneNumberSchema);
 
     // Verify phone number
@@ -66,7 +66,7 @@ module.exports = router => {
     verificationToken: Joi.string().required()
   });
 
-  router.post('/user/login', async ctx => {
+  router.post('/auth/login', async ctx => {
     const { phoneNumber, verificationToken } = Joi.attempt(ctx.request.body, loginSchema);
 
     // TODO: Read from redis
@@ -89,7 +89,39 @@ module.exports = router => {
     });
   });
 
-  router.get('/user/authorize', mw.auth(), async ctx => {
+  const registerSchema = Joi.object().keys({
+    phoneNumber: Joi.phoneNumber().mobile().required(),
+    verificationToken: Joi.string().required(),
+    name: Joi.string().required()
+  });
+
+  router.post('/auth/register', async ctx => {
+    const {
+      name,
+      phoneNumber,
+      verificationToken
+    } = Joi.attempt(ctx.request.body, registerSchema);
+
+    // TODO: Read from redis
+    // Check verification code
+    const isValid = redis.find(i => i[`${REGISTER_TOKEN_PREFIX}:${phoneNumber}`] === verificationToken);
+
+    httpInvariant(isValid, ...authError.invalidVerificationToken);
+
+    const user = userModel.create({ phoneNumber, name });
+
+    // Create new token
+    const { token, refreshToken, jwtid: jti } = await authService.createToken(user.key);
+
+    ctx.bodyOk({
+      key: user.key,
+      token,
+      refreshToken,
+      jti
+    });
+  });
+
+  router.get('/auth/authorize', mw.auth(), async ctx => {
     const userKey = ctx.state.user.key;
 
     const user = userModel.getByKey(userKey, properties.user);
