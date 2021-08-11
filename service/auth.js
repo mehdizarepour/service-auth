@@ -5,7 +5,7 @@ const tokenModel = require('~/model/token');
 
 /**
  *  Create jwt token
- * @param {String}  key             Admin key
+ * @param {String}  key User key
  * @param {Boolean} refreshToken
  * @returns {Object}
  */

@@ -36,7 +36,7 @@ module.exports = () => async (ctx, next) => {
       err instanceof HttpError &&
       err.code === TOKEN_EXPIRED_ERROR_CODE &&
       ctx.method === 'POST' &&
-      ctx._matchedRoute === '/auth/refresh-token'
+      ctx._matchedRoute === '/api/auth/refresh-token'
     ) {
       return next();
     }
