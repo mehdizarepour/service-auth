@@ -8,7 +8,7 @@ const MODEL_NAME = 'users';
  * @param {Object} data User
  * @returns {Object}
  */
-exports.create = data => {
+exports.create = async data => {
   const collection = await db.collection(MODEL_NAME);
 
   return collection.insertOne({ ...data, key: uuid() });
@@ -33,7 +33,7 @@ exports.update = async (condition, data) => {
  * @param {String} key User key
  * @returns {Boolean}
  */
-exports.delete = key => {
+exports.delete = async key => {
   const collection = await db.collection(MODEL_NAME);
 
   const res = await collection.deleteOne({ key })
@@ -47,7 +47,7 @@ exports.delete = key => {
  * @param {Array}  properties User properties
  * @returns {Object}
  */
-exports.getByKey = (key, properties) => {
+exports.getByKey = async (key, properties) => {
   const collection = await db.collection(MODEL_NAME);
 
   return collection.findOne({ key })
@@ -61,7 +61,7 @@ exports.getByKey = (key, properties) => {
  * @param {Array} properties User properties
  * @returns {Object}
  */
-exports.getUserByPhoneNumber = (phoneNumber, properties) => {
+exports.getUserByPhoneNumber = async (phoneNumber, properties) => {
   const collection = await db.collection(MODEL_NAME);
 
   return collection.findOne({ phoneNumber })
