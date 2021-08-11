@@ -27,11 +27,11 @@ exports.db = {
   // DB configs
 };
 
-exports.memory = {
-  users: [],
-  tokens: [],
-  sms: [],
-  redis: []
+exports.redis = {
+  host: env.REDIS_HOST,
+  port: 6379,
+  // password: fs.readFileSync(env.REDIS_PASSWORD_FILE, 'utf8'),
+  db: env.REDIS_DB
 };
 
 exports.errorCodePrefix = 'AUTH_';

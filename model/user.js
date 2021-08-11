@@ -1,5 +1,5 @@
 const { v4: uuid } = require('uuid');
-const db = require('~/lib/db');
+const { db } = require('~/lib/db');
 
 const MODEL_NAME = 'users';
 

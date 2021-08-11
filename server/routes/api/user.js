@@ -1,7 +1,9 @@
-const { memory: { redis }, jwt: jwtConfig } = require('~/config/app');
+const { jwt: jwtConfig } = require('~/config/app');
 const { user: userEnum } = require('~/config/enum');
 const { auth: authError } = require('~/config/error');
-const { randomNumber, uniqueId, jwt } = require('~/lib/crypto');
+const { app: appLimit } = require('~/config/limit');
+const { randomNumber, uniqueId, jwt, safeCompare } = require('~/lib/crypto');
+const { redis } = require('~/lib/db');
 const { httpInvariant } = require('~/lib/error');
 const Joi = require('~/lib/validate');
 const userModel = require('~/model/user');
@@ -46,13 +48,13 @@ module.exports = router => {
     const verificationToken = uniqueId();
 
     if (user) {
-      // TODO: Save to redis
-      // Save login token
-      redis.push({ [`${LOGIN_TOKEN_PREFIX}:${phoneNumber}`]: verificationToken });
+
+      // Save login token into redis
+      await redis.set(`${LOGIN_TOKEN_PREFIX}:${phoneNumber}`, verificationToken, 'PX', appLimit.registrationTokenTTL);
+      // redis.push({ [`${LOGIN_TOKEN_PREFIX}:${phoneNumber}`]: verificationToken });
     } else {
-      // TODO: Save to redis
-      // Save registeration token
-      redis.push({ [`${REGISTER_TOKEN_PREFIX}:${phoneNumber}`]: verificationToken });
+      // Save registeration token into redis
+      await redis.set(`${REGISTER_TOKEN_PREFIX}:${phoneNumber}`, verificationToken, 'PX', appLimit.registrationTokenTTL);
     }
 
     ctx.bodyOk({
@@ -71,15 +73,19 @@ module.exports = router => {
 
     // TODO: Read from redis
     // Check verification code
-    const isValid = redis.find(i => i[`${LOGIN_TOKEN_PREFIX}:${phoneNumber}`] === verificationToken);
+    // Check redis to verify `registrationToken`
+    const registrationToken = await redis.get(`${LOGIN_TOKEN_PREFIX}:${phoneNumber}`);
 
-    httpInvariant(isValid, ...authError.invalidVerificationToken);
+    httpInvariant(safeCompare(registrationToken, verificationToken), ...authError.invalidVerificationToken);
 
     // Get user by phoneNumber
     const user = await userModel.getUserByPhoneNumber(phoneNumber, ['key', 'status']);
 
     // Create new token
     const { token, refreshToken, jwtid: jti } = await authService.createToken(user.key);
+
+    // Remove `registrationToken` from redis
+    await redis.del(`${REGISTER_TOKEN_PREFIX}:${phoneNumber}`);
 
     ctx.bodyOk({
       key: user.key,
@@ -102,17 +108,18 @@ module.exports = router => {
       verificationToken
     } = Joi.attempt(ctx.request.body, registerSchema);
 
-    // TODO: Read from redis
-    // Check verification code
-    const isValid = redis.find(i => i[`${REGISTER_TOKEN_PREFIX}:${phoneNumber}`] === verificationToken);
+    // Check redis to verify `registrationToken`
+    const registrationToken = await redis.get(`${REGISTER_TOKEN_PREFIX}:${phoneNumber}`);
 
-    httpInvariant(isValid, ...authError.invalidVerificationToken);
+    httpInvariant(safeCompare(registrationToken, verificationToken), ...authError.invalidVerificationToken);
 
     const user = await userModel.create({ phoneNumber, name, status: userEnum.status.active });
 
-    console.log('------->', user);
     // Create new token
     const { token, refreshToken, jwtid: jti } = await authService.createToken(user.key);
+
+    // Remove `registrationToken` from redis
+    await redis.del(`${REGISTER_TOKEN_PREFIX}:${phoneNumber}`);
 
     ctx.bodyOk({
       key: user.key,
