@@ -8,10 +8,13 @@ const MODEL_NAME = 'tokens';
  * @param {Object} data Token
  * @returns {Object}
  */
-exports.create = data => {
+exports.create = async data => {
   const collection = await db.collection(MODEL_NAME);
+  const key = uuid();
 
-  return collection.insertOne({ ...data, key: uuid() });
+  const { insertedId: id } = await collection.insertOne({ ...data, key });
+
+  return { id, key, ...data };
 };
 
 /**
@@ -20,7 +23,7 @@ exports.create = data => {
  * @param {Object} data Token data
  * @returns {Boolean}
  */
-exports.update = (condition, data) => {
+exports.update = async (condition, data) => {
   const collection = await db.collection(MODEL_NAME);
 
   const res = await collection.updateOne(condition, { $set: data });
@@ -33,7 +36,7 @@ exports.update = (condition, data) => {
  * @param {String} key Token key
  * @returns {Boolean}
  */
-exports.delete = key => {
+exports.delete = async key => {
   const collection = await db.collection(MODEL_NAME);
 
   const res = await collection.deleteOne({ key })
@@ -47,10 +50,10 @@ exports.delete = key => {
  * @param {Array}  properties Token properties
  * @returns {Object}
  */
-exports.getByKey = (key, properties) => {
+exports.getByKey = async (key, properties) => {
   const collection = await db.collection(MODEL_NAME);
 
-  return collection.findOne({ key })
+  return collection.find({ key })
     .project(db.fieldProjector(properties))
     .next();
 };
@@ -64,7 +67,7 @@ exports.getByKey = (key, properties) => {
 exports.checkAuthRefreshToken = async (userKey, authRefreshToken) => {
   const collection = await db.collection(MODEL_NAME);
 
-  return collection.findOne({ userKey, authRefreshToken })
+  return collection.find({ userKey, authRefreshToken })
     .hasNext();
 };
 
@@ -77,6 +80,6 @@ exports.checkAuthRefreshToken = async (userKey, authRefreshToken) => {
 exports.checkAuthToken = async (userKey, authJwtid) => {
   const collection = await db.collection(MODEL_NAME);
 
-  return collection.findOne({ userKey, authJwtid })
+  return collection.find({ userKey, authJwtid })
     .hasNext();
 };

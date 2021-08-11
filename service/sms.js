@@ -1,4 +1,4 @@
-const debug = require('debug')('service:notification');
+const debug = require('debug')('app:service:notification');
 
 const { castArray } = require('lodash');
 const { memory: db } = require('~/config/app');

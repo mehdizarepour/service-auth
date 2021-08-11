@@ -40,7 +40,7 @@ module.exports = router => {
     smsService.verifyPhoneNumber(phoneNumber, code);
 
     // Get user by phoneNumber
-    const user = userModel.getUserByPhoneNumber(phoneNumber, ['status']);
+    const user = await userModel.getUserByPhoneNumber(phoneNumber, ['status']);
 
     // Generate verification token
     const verificationToken = uniqueId();
@@ -76,7 +76,7 @@ module.exports = router => {
     httpInvariant(isValid, ...authError.invalidVerificationToken);
 
     // Get user by phoneNumber
-    const user = userModel.getUserByPhoneNumber(phoneNumber, ['key', 'status']);
+    const user = await userModel.getUserByPhoneNumber(phoneNumber, ['key', 'status']);
 
     // Create new token
     const { token, refreshToken, jwtid: jti } = await authService.createToken(user.key);
@@ -108,8 +108,9 @@ module.exports = router => {
 
     httpInvariant(isValid, ...authError.invalidVerificationToken);
 
-    const user = userModel.create({ phoneNumber, name, status: userEnum.status.active });
+    const user = await userModel.create({ phoneNumber, name, status: userEnum.status.active });
 
+    console.log('------->', user);
     // Create new token
     const { token, refreshToken, jwtid: jti } = await authService.createToken(user.key);
 
@@ -169,7 +170,7 @@ module.exports = router => {
   router.get('/auth/authorize', mw.auth(), async ctx => {
     const userKey = ctx.state.user.key;
 
-    const user = userModel.getByKey(userKey, properties.user);
+    const user = await userModel.getByKey(userKey, properties.user);
 
     ctx.bodyOk({ ...user, jti: ctx.state.user.jti });
   });

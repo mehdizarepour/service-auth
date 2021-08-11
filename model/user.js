@@ -10,8 +10,11 @@ const MODEL_NAME = 'users';
  */
 exports.create = async data => {
   const collection = await db.collection(MODEL_NAME);
+  const key = uuid();
 
-  return collection.insertOne({ ...data, key: uuid() });
+  const { insertedId: id } = await collection.insertOne({ ...data, key });
+
+  return { id, key, ...data };
 };
 
 /**
@@ -50,7 +53,7 @@ exports.delete = async key => {
 exports.getByKey = async (key, properties) => {
   const collection = await db.collection(MODEL_NAME);
 
-  return collection.findOne({ key })
+  return collection.find({ key })
     .project(db.fieldProjector(properties))
     .next();
 };
@@ -64,7 +67,7 @@ exports.getByKey = async (key, properties) => {
 exports.getUserByPhoneNumber = async (phoneNumber, properties) => {
   const collection = await db.collection(MODEL_NAME);
 
-  return collection.findOne({ phoneNumber })
+  return collection.find({ phoneNumber })
     .project(db.fieldProjector(properties))
     .next();
 };
