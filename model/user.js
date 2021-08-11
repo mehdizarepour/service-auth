@@ -1,7 +1,5 @@
-const { castArray, pick } = require('lodash');
-
-const { memory: db } = require('~/config/app');
-const { uniqueId } = require('~/lib/crypto');
+const { v4: uuid } = require('uuid');
+const db = require('~/lib/db');
 
 const MODEL_NAME = 'users';
 
@@ -11,42 +9,36 @@ const MODEL_NAME = 'users';
  * @returns {Object}
  */
 exports.create = data => {
-  const users = castArray(db[MODEL_NAME]);
-  const key = uniqueId();
+  const collection = await db.collection(MODEL_NAME);
 
-  users.push({ key, ...data });
-  db[MODEL_NAME] = users;
-
-  return { ...data, key };
+  return collection.insertOne({ ...data, key: uuid() });
 };
 
 /**
- * Update user by key
- * @param {String} key User key
+ * Update user
+ * @param {Object} condition
  * @param {Object} data User data
  * @returns {Boolean}
  */
-exports.update = (key, data) => {
-  let users = castArray(db[MODEL_NAME]);
+exports.update = async (condition, data) => {
+  const collection = await db.collection(MODEL_NAME);
 
-  users = users.map(i => i.key === key ? data : i);
-  db[MODEL_NAME] = users;
+  const res = await collection.updateOne(condition, { $set: data });
 
-  return !!users.find(i => i.key === key);
+  return !!res.modifiedCount;
 };
 
 /**
- * Delete user by key
+ * Delete user
  * @param {String} key User key
  * @returns {Boolean}
  */
 exports.delete = key => {
-  let users = castArray(db[MODEL_NAME]);
+  const collection = await db.collection(MODEL_NAME);
 
-  users = users.filter(i => i.key !== key);
-  db[MODEL_NAME] = users;
+  const res = await collection.deleteOne({ key })
 
-  return true;
+  return !!res.deletedCount;
 };
 
 /**
@@ -56,9 +48,11 @@ exports.delete = key => {
  * @returns {Object}
  */
 exports.getByKey = (key, properties) => {
-  const res = db[MODEL_NAME].find(i => i.key === key);
+  const collection = await db.collection(MODEL_NAME);
 
-  return res ? pick(res, properties) : null;
+  return collection.findOne({ key })
+    .project(db.fieldProjector(properties))
+    .next();
 };
 
 /**
@@ -68,7 +62,9 @@ exports.getByKey = (key, properties) => {
  * @returns {Object}
  */
 exports.getUserByPhoneNumber = (phoneNumber, properties) => {
-  const res = db[MODEL_NAME].find(i => i.phoneNumber === phoneNumber);
+  const collection = await db.collection(MODEL_NAME);
 
-  return res ? pick(res, properties) : null;
+  return collection.findOne({ phoneNumber })
+    .project(db.fieldProjector(properties))
+    .next();
 };
