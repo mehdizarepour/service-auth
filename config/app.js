@@ -14,7 +14,7 @@ exports.jwt = {
   tokenMaxAge: '30d',
   refreshTokenMaxAge: '1y',
   algorithm: 'RS256',
-  issuer: 'coocheh:auth',
+  issuer: 'init:auth',
   private: fs.readFileSync(env.APP_JWT_SECRET_PRIVATE || './runtime/private.key'),
   public: fs.readFileSync(env.APP_JWT_SECRET_PUBLIC || './runtime/public.crt')
 };
