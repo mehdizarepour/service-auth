@@ -11,12 +11,12 @@ exports.server = {
 };
 
 exports.jwt = {
-  tokenMaxAge: '30d',
-  refreshTokenMaxAge: '1y',
+  tokenMaxAge: env.APP_JWT_TOKEN_MAX_AGE,
+  refreshTokenMaxAge: env.APP_JWT_REFRESH_TOKEN_MAX_AGE,
   algorithm: 'RS256',
   issuer: 'init:auth',
-  private: fs.readFileSync(env.APP_JWT_SECRET_PRIVATE || './runtime/private.key'),
-  public: fs.readFileSync(env.APP_JWT_SECRET_PUBLIC || './runtime/public.crt')
+  private: env.APP_JWT_SECRET_PRIVATE || fs.readFileSync(env.APP_JWT_SECRET_PRIVATE_FILE),
+  public: env.APP_JWT_SECRET_PUBLIC || fs.readFileSync(env.APP_JWT_SECRET_PUBLIC_FILE)
 };
 
 // environment
@@ -24,13 +24,21 @@ exports.isDev = env.NODE_ENV !== 'production';
 
 // database
 exports.db = {
-  // DB configs
+  host: env.DB_HOST,
+  port: env.DB_PORT,
+  database: env.DB_DATABASE,
+  username: env.DB_USERNAME || fs.readFileSync(env.DB_USERNAME_FILE, 'utf-8'),
+  password: env.DB_PASSWORD || fs.readFileSync(env.DB_PASSWORD_FILE, 'utf-8')
+};
+
+exports.memory = {
+  sms: []
 };
 
 exports.redis = {
   host: env.REDIS_HOST,
-  port: 6379,
-  // password: fs.readFileSync(env.REDIS_PASSWORD_FILE, 'utf8'),
+  port: env.REDIS_PORT,
+  password: env.REDIS_PASSWORD || fs.readFileSync(env.REDIS_PASSWORD_FILE, 'utf8'),
   db: env.REDIS_DB
 };
 
